@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "watersource",
+  "version": "${version}",
+  "name": "WaterSource",
+  "description": "Highlights the source of flowing water and lava to stop it fast and clean.",
+  "authors": [
+    "Swench"
+  ],
+  "contact": {
+    "sources": "https://github.com/Swench44/EasyPotion"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/watersource/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "dev.swench.watersource.WaterSource"
+    ],
+    "modmenu": [
+      "dev.swench.watersource.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "watersource.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "1.16.5",
+    "cloth-config2": "*"
+  }
+}
