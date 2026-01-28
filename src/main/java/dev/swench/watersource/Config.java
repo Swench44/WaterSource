@@ -105,13 +105,13 @@ public class Config {
     public static void load() {
         init();
         if (configFile == null || !configFile.exists()) {
-            waterEnabled = true;
+            waterEnabled = false;
             waterRadius = 30;
             waterColor = HighlightColor.RED;
             waterFill = false;
             waterAlpha = 0;
 
-            lavaEnabled = true;
+            lavaEnabled = false;
             lavaRadius = 30;
             lavaColor = HighlightColor.CYAN;
             lavaFill = false;
