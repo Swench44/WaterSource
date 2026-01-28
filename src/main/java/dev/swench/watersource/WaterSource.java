@@ -22,7 +22,7 @@ public class WaterSource implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (Config.configKeyBinding.wasPressed()) {
                 if (client.currentScreen == null) {
-                    client.openScreen(ClothConfigIntegration.createConfigScreen(null));
+                    client.setScreen(ClothConfigIntegration.createConfigScreen(null));
                 }
             }
         });

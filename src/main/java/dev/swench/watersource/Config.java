@@ -51,13 +51,13 @@ public class Config {
     private static File configFile;
 
     private static class ConfigData {
-        boolean waterEnabled = true;
+        boolean waterEnabled = false;
         int waterRadius = 30;
         HighlightColor waterColor = HighlightColor.RED;
         boolean waterFill = false;
         int waterAlpha = 0;
 
-        boolean lavaEnabled = true;
+        boolean lavaEnabled = false;
         int lavaRadius = 30;
         HighlightColor lavaColor = HighlightColor.CYAN;
         boolean lavaFill = false;
@@ -105,13 +105,13 @@ public class Config {
     public static void load() {
         init();
         if (configFile == null || !configFile.exists()) {
-            waterEnabled = true;
+            waterEnabled = false;
             waterRadius = 30;
             waterColor = HighlightColor.RED;
             waterFill = false;
             waterAlpha = 0;
 
-            lavaEnabled = true;
+            lavaEnabled = false;
             lavaRadius = 30;
             lavaColor = HighlightColor.CYAN;
             lavaFill = false;
