@@ -2,7 +2,6 @@ package dev.swench.watersource.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -16,7 +15,7 @@ public class RenderUtils {
         float b = (float) (color & 255) / 255.0F;
         float a = (float) alphaPercent / 100.0F;
 
-        Matrix4f matrix = matrixStack.peek().getModel();
+        Matrix4f matrix = matrixStack.peek().getPositionMatrix();
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         
         RenderSystem.enableBlend();
@@ -37,12 +36,11 @@ public class RenderUtils {
         Tessellator.getInstance().draw();
         
         RenderSystem.enableDepthTest();
-        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
     public static void drawFilledBox(MatrixStack matrixStack, BufferBuilder bufferBuilder, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float r, float g, float b, float a) {
-        Matrix4f matrix = matrixStack.peek().getModel();
+        Matrix4f matrix = matrixStack.peek().getPositionMatrix();
         bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a).next();
