@@ -10,7 +10,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class WorldRendererMixin {
 
     @Inject(method = "render", at = @At("RETURN"))
-    private void onRender(float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void onRender(RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         if (!Config.waterEnabled && !Config.lavaEnabled) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
@@ -35,12 +34,8 @@ public class WorldRendererMixin {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
 
-        Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
-        modelViewStack.pushMatrix();
-        modelViewStack.mul(positionMatrix);
-        RenderSystem.applyModelViewMatrix();
-
         MatrixStack matrices = new MatrixStack();
+        matrices.multiplyPositionMatrix(positionMatrix);
 
         BlockPos playerPos = client.player.getBlockPos();
         int maxRadius = Math.max(Config.waterRadius, Config.lavaRadius);
@@ -78,9 +73,6 @@ public class WorldRendererMixin {
                 }
             }
         }
-
-        modelViewStack.popMatrix();
-        RenderSystem.applyModelViewMatrix();
 
         RenderSystem.enableCull();
         RenderSystem.enableDepthTest();

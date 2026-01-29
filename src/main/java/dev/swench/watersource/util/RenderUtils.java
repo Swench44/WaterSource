@@ -17,7 +17,6 @@ public class RenderUtils {
 
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
         
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -27,14 +26,14 @@ public class RenderUtils {
         Box box = new Box(pos);
         
         if (fill) {
-            bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-            drawFilledBox(matrixStack, bufferBuilder, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, r, g, b, a);
-            tessellator.draw();
+            BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+            drawFilledBox(matrix, bufferBuilder, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, r, g, b, a);
+            BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         }
 
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        drawBoxOutlineAsQuads(matrix, bufferBuilder, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, r, g, b, a);
-        tessellator.draw();
+        BufferBuilder outlineBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        drawBoxOutlineAsQuads(matrix, outlineBuilder, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, r, g, b, a);
+        BufferRenderer.drawWithGlobalProgram(outlineBuilder.end());
         
         RenderSystem.enableDepthTest();
         RenderSystem.disableBlend();
@@ -86,42 +85,41 @@ public class RenderUtils {
         cy = (cy / clen) * width;
         cz = (cz / clen) * width;
         
-        buffer.vertex(matrix, (float)(x1 - cx), (float)(y1 - cy), (float)(z1 - cz)).color(r, g, b, a).next();
-        buffer.vertex(matrix, (float)(x1 + cx), (float)(y1 + cy), (float)(z1 + cz)).color(r, g, b, a).next();
-        buffer.vertex(matrix, (float)(x2 + cx), (float)(y2 + cy), (float)(z2 + cz)).color(r, g, b, a).next();
-        buffer.vertex(matrix, (float)(x2 - cx), (float)(y2 - cy), (float)(z2 - cz)).color(r, g, b, a).next();
+        buffer.vertex(matrix, (float)(x1 - cx), (float)(y1 - cy), (float)(z1 - cz)).color(r, g, b, a);
+        buffer.vertex(matrix, (float)(x1 + cx), (float)(y1 + cy), (float)(z1 + cz)).color(r, g, b, a);
+        buffer.vertex(matrix, (float)(x2 + cx), (float)(y2 + cy), (float)(z2 + cz)).color(r, g, b, a);
+        buffer.vertex(matrix, (float)(x2 - cx), (float)(y2 - cy), (float)(z2 - cz)).color(r, g, b, a);
     }
 
-    private static void drawFilledBox(MatrixStack matrixStack, BufferBuilder bufferBuilder, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float r, float g, float b, float a) {
-        Matrix4f matrix = matrixStack.peek().getPositionMatrix();
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a).next();
+    private static void drawFilledBox(Matrix4f matrix, BufferBuilder bufferBuilder, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float r, float g, float b, float a) {
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a);
 
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a).next();
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a);
 
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a).next();
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a);
 
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a).next();
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a);
 
-        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a).next();
+        bufferBuilder.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a);
 
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a).next();
-        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a).next();
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, a);
+        bufferBuilder.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, a);
     }
 }
