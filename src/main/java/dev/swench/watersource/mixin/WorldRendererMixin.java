@@ -1,17 +1,16 @@
 package dev.swench.watersource.mixin;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.swench.watersource.Config;
 import dev.swench.watersource.util.RenderUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,15 +21,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class WorldRendererMixin {
 
     @Inject(method = "render", at = @At("RETURN"))
-    private void onRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void onRender(float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         if (!Config.waterEnabled && !Config.lavaEnabled) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 
         Vec3d cameraPos = camera.getPos();
-        matrices.push();
-        matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+        
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.disableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+
+        Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
+        modelViewStack.pushMatrix();
+        modelViewStack.mul(positionMatrix);
+        RenderSystem.applyModelViewMatrix();
+
+        MatrixStack matrices = new MatrixStack();
 
         BlockPos playerPos = client.player.getBlockPos();
         int maxRadius = Math.max(Config.waterRadius, Config.lavaRadius);
@@ -47,7 +57,10 @@ public class WorldRendererMixin {
                     if (Config.waterEnabled && distSq <= Config.waterRadius * Config.waterRadius) {
                         if (fluidState.getFluid() == Fluids.WATER || fluidState.getFluid() == Fluids.FLOWING_WATER) {
                             if (fluidState.isStill() && fluidState.getLevel() == 8) {
-                                RenderUtils.drawBox(matrices, pos, Config.waterColor.getValue(), Config.waterFill, 100 - Config.waterAlpha);
+                                matrices.push();
+                                matrices.translate(pos.getX() - cameraPos.x, pos.getY() - cameraPos.y, pos.getZ() - cameraPos.z);
+                                RenderUtils.drawBox(matrices, BlockPos.ORIGIN, Config.waterColor.getValue(), Config.waterFill, 100 - Config.waterAlpha);
+                                matrices.pop();
                             }
                         }
                     }
@@ -55,7 +68,10 @@ public class WorldRendererMixin {
                     if (Config.lavaEnabled && distSq <= Config.lavaRadius * Config.lavaRadius) {
                         if (fluidState.getFluid() == Fluids.LAVA || fluidState.getFluid() == Fluids.FLOWING_LAVA) {
                             if (fluidState.isStill() && fluidState.getLevel() == 8) {
-                                RenderUtils.drawBox(matrices, pos, Config.lavaColor.getValue(), Config.lavaFill, 100 - Config.lavaAlpha);
+                                matrices.push();
+                                matrices.translate(pos.getX() - cameraPos.x, pos.getY() - cameraPos.y, pos.getZ() - cameraPos.z);
+                                RenderUtils.drawBox(matrices, BlockPos.ORIGIN, Config.lavaColor.getValue(), Config.lavaFill, 100 - Config.lavaAlpha);
+                                matrices.pop();
                             }
                         }
                     }
@@ -63,6 +79,11 @@ public class WorldRendererMixin {
             }
         }
 
-        matrices.pop();
+        modelViewStack.popMatrix();
+        RenderSystem.applyModelViewMatrix();
+
+        RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
     }
 }
